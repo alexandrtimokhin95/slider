@@ -1,6 +1,6 @@
 class Slider{
     constructor(className,object) {
-        this.className = document.querySelector('.'+className);
+        this.className = document.querySelector('.'+className).children[0];
         this.next = document.querySelector('.'+object.navigation.next);
         this.prev = document.querySelector('.'+object.navigation.prev);
         this.sliderItems = [...this.className.children];
@@ -11,18 +11,23 @@ class Slider{
     }
     getCountSlideView(){
         let thisObject = this;
-        for (const item in this.settings.breakPoints) {
-            if( window.innerWidth >= item ){
-                this.settings.slide = thisObject.settings.breakPoints[item].slide;
+        if(this.settings.breakPoints && Object.keys(this.settings.breakPoints).length > 0){
+            for (const item in this.settings.breakPoints) {
+                if( window.innerWidth >= item ){
+                    this.settings.slide = thisObject.settings.breakPoints[item].slide;
+                }
             }
         }
     }
     getSliderItemWidth(){
-        console.log(this.settings.slide)
         if(this.settings.slide > 1){
-            return this.sliderItems[0].offsetWidth / this.settings.slide;
+            if(this.settings.margin > 0){
+                return (this.className.offsetWidth / this.settings.slide);
+            }else{
+                return this.className.offsetWidth / this.settings.slide;
+            }
         }else{
-            return this.sliderItems[0].offsetWidth;
+            return this.className.offsetWidth;
         }
     }
     checkWidth(){
@@ -34,8 +39,10 @@ class Slider{
         let thisObject = this;
         this.sliderItems.forEach(function (item,index){
             item.setAttribute('index',index);
-            item.style.transform = 'translate(0px,0px)';
-            item.style.flex = '1 0 '+ thisObject.getSliderItemWidth()+'px';
+            item.style.width = thisObject.getSliderItemWidth()+'px';
+            if(index !== thisObject.countSlides - 1){
+                item.style.marginRight = thisObject.settings.margin+'px';
+            }
         });
     }
     setActiveSlide(index=0){
@@ -54,41 +61,27 @@ class Slider{
         }
     }
     sliderNavigation(){
-        let sliderItems = [...this.className.children];
-        let width = this.getSliderItemWidth();
+        let width = this.getSliderItemWidth() * this.settings.slide;
         let indexSlide = 0;
         const thisObject = this;
         if(this.settings.loop === false){
             this.prev.classList.add('disabled');
         }
         if(!this.checkWidth()) {
+            let currentPosition = 0;
             this.next.onclick = function () {
-                if (indexSlide + thisObject.settings.slide < thisObject.countSlides) {
-                    indexSlide++;
-                    sliderItems.forEach(function (item, index) {
-                        let matrix = window.getComputedStyle(item).transform;
-                        matrix = matrix.split(/\(|,\s|\)/).slice(1, 7);
-                        let newPosition = Math.abs(+matrix[4]) + +width;
-                        item.style.transform = 'translate(-' + newPosition + 'px,0px)';
-                    });
-                    thisObject.setActiveSlide(indexSlide);
-                }
-                if (indexSlide + thisObject.settings.slide === thisObject.countSlides) {
-                    this.classList.add('disabled')
-                } else {
-                    this.classList.remove('disabled')
-                }
+                indexSlide++;
+                currentPosition += +width;
+                thisObject.className.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
+                thisObject.setActiveSlide(indexSlide);
+
                 thisObject.prev.classList.remove('disabled');
             };
             this.prev.onclick = function () {
                 if (indexSlide > 0) {
                     indexSlide--;
-                    sliderItems.forEach(function (item, index) {
-                        let matrix = window.getComputedStyle(item).transform;
-                        matrix = matrix.split(/\(|,\s|\)/).slice(1, 7);
-                        let newPosition = Math.abs(+matrix[4]) - +width;
-                        item.style.transform = 'translate(-' + newPosition + 'px,0px)';
-                    });
+                    currentPosition -= +width;
+                    thisObject.className.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
                     thisObject.setActiveSlide(indexSlide);
                 }
                 if (indexSlide === 0) {
@@ -112,20 +105,6 @@ class Slider{
 let slider = new Slider('main-slider-first',{
     slide:2,
     loop:false,
-    breakPoints:{
-        '475':{
-            slide:1
-        },
-        '768':{
-            slide:3
-        },
-        '1300':{
-            slide:1
-        },
-        '1600':{
-            slide:1
-        }
-    },
     navigation:{
         'next':'slider-btn-next',
         'prev':'slider-btn-prev'
