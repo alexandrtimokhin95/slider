@@ -22,7 +22,7 @@ class Slider{
     getSliderItemWidth(){
         if(this.settings.slide > 1){
             if(this.settings.margin > 0){
-                return (this.className.offsetWidth / this.settings.slide);
+                return this.className.offsetWidth / this.settings.slide;
             }else{
                 return this.className.offsetWidth / this.settings.slide;
             }
@@ -39,8 +39,8 @@ class Slider{
         let thisObject = this;
         this.sliderItems.forEach(function (item,index){
             item.setAttribute('index',index);
-            item.style.width = thisObject.getSliderItemWidth()+'px';
-            if(index !== thisObject.countSlides - 1){
+            item.style.width = thisObject.getSliderItemWidth()-(thisObject.settings.margin - thisObject.settings.margin/thisObject.settings.slide)+'px';
+            if(thisObject.settings.margin){
                 item.style.marginRight = thisObject.settings.margin+'px';
             }
         });
@@ -71,7 +71,7 @@ class Slider{
             let currentPosition = 0;
             this.next.onclick = function () {
                 indexSlide++;
-                currentPosition += +width;
+                currentPosition += +width + thisObject.settings.margin;
                 thisObject.className.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
                 thisObject.setActiveSlide(indexSlide);
 
@@ -80,7 +80,7 @@ class Slider{
             this.prev.onclick = function () {
                 if (indexSlide > 0) {
                     indexSlide--;
-                    currentPosition -= +width;
+                    currentPosition -= +width + thisObject.settings.margin;
                     thisObject.className.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
                     thisObject.setActiveSlide(indexSlide);
                 }
@@ -103,8 +103,9 @@ class Slider{
     }
 }
 let slider = new Slider('main-slider-first',{
-    slide:2,
+    slide:3,
     loop:false,
+    margin:90,
     navigation:{
         'next':'slider-btn-next',
         'prev':'slider-btn-prev'
