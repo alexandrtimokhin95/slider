@@ -8,7 +8,6 @@ class Slider{
         this.settings = object;
         this.SliderInit();
     }
-    2
     setSettingsValue(){
         this.viewCountSlide = this.settings.slide;
         if(typeof this.settings['offset'] !== "undefined"){
