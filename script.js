@@ -25,8 +25,14 @@ class Slider{
 
         if(typeof this.settings['width'] !== "undefined"){
             this.widthSlide = this.settings.width;
-        }else{
+        }else {
             this.widthSlide = false;
+        }
+
+        if(typeof this.settings['loop'] !== "undefined"){
+            this.loop = this.settings.loop;
+        }else{
+            this.loop = false;
         }
 
         if(typeof this.settings['viewOverflow'] !== "undefined"){
@@ -55,8 +61,18 @@ class Slider{
             }
         }
     }
-    loopInit(){
+    loopInit(index = 0){
+        let firstCloneElement = document.createElement('div');
+        firstCloneElement.classList.add('slider-slide');
+        firstCloneElement.innerHTML = this.sliderItems[this.sliderItems.length-1].innerHTML;
+        this.sliderItems.unshift(firstCloneElement);
+        this.sliderContainer.prepend(firstCloneElement);
 
+        let lastCloneElement = document.createElement('div');
+        lastCloneElement.classList.add('slider-slide');
+        lastCloneElement.innerHTML = this.sliderItems[1].innerHTML;
+        this.sliderItems.push(lastCloneElement);
+        this.sliderContainer.append(lastCloneElement);
     }
     getSliderItemWidth(){
         if(this.viewCountSlide > 1){
@@ -74,7 +90,7 @@ class Slider{
                 return this.sliderContainer.offsetWidth / this.viewCountSlide;
             }
         }else{
-            return this.sliderContainer.offsetWidth-2;
+            return this.sliderContainer.offsetWidth;
         }
     }
     getSliderPosition(){
@@ -128,20 +144,51 @@ class Slider{
     }
     sliderNavigation(){
         let width = this.getSliderPosition();
+        let loopPosition = this.getSliderPosition();
         let currentPosition = 0;
         let indexSlide = 0;
         const thisObject = this;
+        if(this.loop){
+            currentPosition = this.getSliderPosition();
+            loopPosition  = this.getSliderPosition();
+            this.sliderContainer.style.transform = 'translate3d(-'+ loopPosition  +'px, 0px, 0px)';
+        }
         this.next.onclick = function () {
-            indexSlide++;
-            currentPosition += +width;
-            thisObject.sliderContainer.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
-            console.log(indexSlide)
+            if(indexSlide === thisObject.sliderItems.length - 2){
+                currentPosition += +width;
+                thisObject.sliderContainer.style.transitionDuration = '0s';
+                thisObject.sliderContainer.style.transform = 'translate3d(-'+loopPosition+'px, 0px, 0px)';
+                setTimeout(function (){
+                    thisObject.sliderContainer.style.transitionDuration = '0.4s';
+                    thisObject.sliderContainer.style.transform = 'translate3d(-'+loopPosition*2+'px, 0px, 0px)';
+                },50)
+                indexSlide = 1;
+                currentPosition = loopPosition*2;
+            }else{
+                indexSlide++;
+                currentPosition += +width;
+                thisObject.sliderContainer.style.transitionDuration = '0.4s';
+                thisObject.sliderContainer.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
+                thisObject.setActiveSlide(indexSlide)
+            }
         };
         this.prev.onclick = function () {
-            if(indexSlide > 0){
+            console.log()
+            if(indexSlide === -1){
+                currentPosition -= +width;
+                thisObject.sliderContainer.style.transitionDuration = '0s';
+                thisObject.sliderContainer.style.transform = 'translate3d(-'+loopPosition*(thisObject.sliderItems.length-2)+'px, 0px, 0px)';
+                setTimeout(function (){
+                    thisObject.sliderContainer.style.transitionDuration = '0.4s';
+                    thisObject.sliderContainer.style.transform = 'translate3d(-'+loopPosition*(thisObject.sliderItems.length-3)+'px, 0px, 0px)';
+                },50)
+                indexSlide = thisObject.sliderItems.length-3;
+                currentPosition = loopPosition*(thisObject.sliderItems.length-3);
+            }else {
                 indexSlide--;
                 currentPosition -= +width;
-                thisObject.sliderContainer.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
+                thisObject.sliderContainer.style.transitionDuration = '0.4s';
+                thisObject.sliderContainer.style.transform = 'translate3d(-' + currentPosition + 'px, 0px, 0px)';
             }
         }
     }
@@ -149,7 +196,9 @@ class Slider{
         this.sliderContainer.classList.add('slider-init');
         this.setSettingsValue();
         this.setBreakPoints();
-        this.loopInit();
+        if(this.loop){
+            this.loopInit();
+        }
         this.sliderItemsInit();
         this.setActiveSlide();
         this.sliderNavigation();
@@ -161,10 +210,19 @@ let slider = new Slider('main-slider-first',{
     loop:true,
     touch:true,
     offset:'all',
-    viewOverflow:false,
-    width:250,
     navigation:{
         'next':'slider-btn-next',
         'prev':'slider-btn-prev'
     }
 });
+/*
+    slide:1,
+    margin:20,
+    loop:true,
+    touch:true,
+    offset:'all',
+    viewOverflow:false,
+    width:250,
+    breakPoints
+    navigation
+*/

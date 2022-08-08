@@ -13,7 +13,6 @@ body{
     align-items: center;
     height: 200px;
     border: 1px solid green;
-    transition: all 0.3s ease;
 }
 .slider-slide img{
     display: block;
@@ -64,5 +63,4 @@ body{
     transition-property: transform;
     box-sizing: content-box;
     transform: translate3d(0px, 0px, 0px);
-    transition: all 0.3s ease;
 }
