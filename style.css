@@ -1,5 +1,4 @@
 body{
-    margin: 0;
     padding: 0;
     overflow-y: hidden;
 }
@@ -8,6 +7,12 @@ body{
     flex-shrink: 0;
     transition-property: transform;
     position: relative;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    border: 1px solid green;
     transition: all 0.3s ease;
 }
 .slider-slide img{
@@ -26,6 +31,7 @@ body{
     list-style: none;
     padding: 0;
     z-index: 1;
+    max-width: 650px;
 }
 .slider-navigation{
     display: flex;

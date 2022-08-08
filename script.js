@@ -10,16 +10,31 @@ class Slider{
     }
     setSettingsValue(){
         this.viewCountSlide = this.settings.slide;
+
         if(typeof this.settings['offset'] !== "undefined"){
             this.offset = this.settings.offset;
         }else{
             this.offset = 'all';
         }
+
         if(typeof this.settings['margin'] !== "undefined"){
             this.marginSlider = this.settings.margin;
         }else{
             this.marginSlider = false;
         }
+
+        if(typeof this.settings['width'] !== "undefined"){
+            this.widthSlide = this.settings.width;
+        }else{
+            this.widthSlide = false;
+        }
+
+        if(typeof this.settings['viewOverflow'] !== "undefined"){
+            this.viewOverflow = this.settings.viewOverflow;
+        }else{
+            this.viewOverflow = false;
+        }
+
         if(typeof this.settings['breakPoints'] !== "undefined"){
             this.breakPoints = this.settings.breakPoints;
             this.setBreakPoints();
@@ -40,30 +55,49 @@ class Slider{
             }
         }
     }
-    setSliderItemWidth(){
+    loopInit(){
+
+    }
+    getSliderItemWidth(){
         if(this.viewCountSlide > 1){
             if(this.marginSlider && this.marginSlider > 0){
-                return (this.sliderContainer.offsetWidth / this.viewCountSlide)-(this.marginSlider - this.marginSlider/this.viewCountSlide);
+                if(this.viewOverflow){
+                    if(this.widthSlide){
+                        return this.widthSlide;
+                    }else{
+                        return this.sliderContainer.offsetWidth / this.viewCountSlide;
+                    }
+                }else{
+                    return (this.sliderContainer.offsetWidth / this.viewCountSlide)-(this.marginSlider - this.marginSlider/this.viewCountSlide);
+                }
             }else{
                 return this.sliderContainer.offsetWidth / this.viewCountSlide;
             }
         }else{
-            return this.sliderContainer.offsetWidth;
+            return this.sliderContainer.offsetWidth-2;
         }
     }
-    setSliderPosition(){
+    getSliderPosition(){
         switch (this.offset) {
             case "all":
                 if(this.marginSlider){
-                    return this.sliderContainer.offsetWidth + this.marginSlider;
+                    if(this.viewOverflow){
+                        if(this.widthSlide){
+                            return this.widthSlide + this.marginSlider;
+                        }else{
+                            return this.sliderContainer.offsetWidth - this.getSliderItemWidth() + (this.marginSlider * (this.viewCountSlide-1));
+                        }
+                    }else{
+                        return this.sliderContainer.offsetWidth + this.marginSlider;
+                    }
                 }else{
                     return this.sliderContainer.offsetWidth;
                 }
             case "one":
                 if(this.marginSlider){
-                    return this.setSliderItemWidth() + this.marginSlider;
+                    return this.getSliderItemWidth() + this.marginSlider;
                 }else{
-                    return this.setSliderItemWidth();
+                    return this.getSliderItemWidth();
                 }
         }
     }
@@ -71,7 +105,7 @@ class Slider{
         let thisObject = this;
         this.sliderItems.forEach(function (item,index){
             item.setAttribute('index',index);
-            item.style.width = thisObject.setSliderItemWidth()+'px';
+            item.style.width = thisObject.getSliderItemWidth()+'px';
             if(thisObject.marginSlider){
                 item.style.marginRight = thisObject.marginSlider+'px';
             }
@@ -93,7 +127,7 @@ class Slider{
         }
     }
     sliderNavigation(){
-        let width = this.setSliderPosition();
+        let width = this.getSliderPosition();
         let currentPosition = 0;
         let indexSlide = 0;
         const thisObject = this;
@@ -101,6 +135,7 @@ class Slider{
             indexSlide++;
             currentPosition += +width;
             thisObject.sliderContainer.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
+            console.log(indexSlide)
         };
         this.prev.onclick = function () {
             if(indexSlide > 0){
@@ -114,26 +149,20 @@ class Slider{
         this.sliderContainer.classList.add('slider-init');
         this.setSettingsValue();
         this.setBreakPoints();
+        this.loopInit();
         this.sliderItemsInit();
         this.setActiveSlide();
         this.sliderNavigation();
     }
 }
 let slider = new Slider('main-slider-first',{
-    slide:3,
+    slide:1,
     margin:20,
-    loop:false,
+    loop:true,
     touch:true,
-    offset:'one',
-    breakPoints:{
-      '320':{
-        margin:10,
-        slide:2
-      },
-      '1200':{
-          slide:3
-      }
-    },
+    offset:'all',
+    viewOverflow:false,
+    width:250,
     navigation:{
         'next':'slider-btn-next',
         'prev':'slider-btn-prev'
