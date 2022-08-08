@@ -1,47 +1,79 @@
 class Slider{
     constructor(className,object) {
-        this.className = document.querySelector('.'+className).children[0];
+        this.sliderContainer = document.querySelector('.'+className).children[0];
         this.next = document.querySelector('.'+object.navigation.next);
         this.prev = document.querySelector('.'+object.navigation.prev);
-        this.sliderItems = [...this.className.children];
+        this.sliderItems = [...this.sliderContainer.children];
         this.countSlides = this.sliderItems.length;
         this.settings = object;
-        this.getCountSlideView();
         this.SliderInit();
     }
-    getCountSlideView(){
+    setSettingsValue(){
+        this.viewCountSlide = this.settings.slide;
+        if(typeof this.settings['offset'] !== "undefined"){
+            this.offset = this.settings.offset;
+        }else{
+            this.offset = 'all';
+        }
+        if(typeof this.settings['margin'] !== "undefined"){
+            this.marginSlider = this.settings.margin;
+        }else{
+            this.marginSlider = false;
+        }
+        if(typeof this.settings['breakPoints'] !== "undefined"){
+            this.breakPoints = this.settings.breakPoints;
+            this.setBreakPoints();
+        }
+    }
+    setBreakPoints(){
         let thisObject = this;
-        if(this.settings.breakPoints && Object.keys(this.settings.breakPoints).length > 0){
-            for (const item in this.settings.breakPoints) {
+        if(typeof this.settings['breakPoints'] !== "undefined" && Object.keys(this.breakPoints).length > 0){
+            for (let item in this.breakPoints) {
                 if( window.innerWidth >= item ){
-                    this.settings.slide = thisObject.settings.breakPoints[item].slide;
+                    this.viewCountSlide = thisObject.breakPoints[item].slide;
+                    if(typeof thisObject.breakPoints[item]['margin'] !== "undefined"){
+                        this.marginSlider = thisObject.breakPoints[item].margin;
+                    }else{
+                        this.marginSlider = this.settings.margin;
+                    }
                 }
             }
         }
     }
-    getSliderItemWidth(){
-        if(this.settings.slide > 1){
-            if(this.settings.margin > 0){
-                return this.className.offsetWidth / this.settings.slide;
+    setSliderItemWidth(){
+        if(this.viewCountSlide > 1){
+            if(this.marginSlider && this.marginSlider > 0){
+                return (this.sliderContainer.offsetWidth / this.viewCountSlide)-(this.marginSlider - this.marginSlider/this.viewCountSlide);
             }else{
-                return this.className.offsetWidth / this.settings.slide;
+                return this.sliderContainer.offsetWidth / this.viewCountSlide;
             }
         }else{
-            return this.className.offsetWidth;
+            return this.sliderContainer.offsetWidth;
         }
     }
-    checkWidth(){
-        if((this.getSliderItemWidth() * this.countSlides)+2 === this.className.offsetWidth){
-            return true;
+    setSliderPosition(){
+        switch (this.offset) {
+            case "all":
+                if(this.marginSlider){
+                    return this.sliderContainer.offsetWidth + this.marginSlider;
+                }else{
+                    return this.sliderContainer.offsetWidth;
+                }
+            case "one":
+                if(this.marginSlider){
+                    return this.setSliderItemWidth() + this.marginSlider;
+                }else{
+                    return this.setSliderItemWidth();
+                }
         }
     }
     sliderItemsInit(){
         let thisObject = this;
         this.sliderItems.forEach(function (item,index){
             item.setAttribute('index',index);
-            item.style.width = thisObject.getSliderItemWidth()-(thisObject.settings.margin - thisObject.settings.margin/thisObject.settings.slide)+'px';
-            if(thisObject.settings.margin){
-                item.style.marginRight = thisObject.settings.margin+'px';
+            item.style.width = thisObject.setSliderItemWidth()+'px';
+            if(thisObject.marginSlider){
+                item.style.marginRight = thisObject.marginSlider+'px';
             }
         });
     }
@@ -61,42 +93,27 @@ class Slider{
         }
     }
     sliderNavigation(){
-        let width = this.getSliderItemWidth() * this.settings.slide;
+        let width = this.setSliderPosition();
+        let currentPosition = 0;
         let indexSlide = 0;
         const thisObject = this;
-        if(this.settings.loop === false){
-            this.prev.classList.add('disabled');
-        }
-        if(!this.checkWidth()) {
-            let currentPosition = 0;
-            this.next.onclick = function () {
-                indexSlide++;
-                currentPosition += +width + thisObject.settings.margin;
-                thisObject.className.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
-                thisObject.setActiveSlide(indexSlide);
-
-                thisObject.prev.classList.remove('disabled');
-            };
-            this.prev.onclick = function () {
-                if (indexSlide > 0) {
-                    indexSlide--;
-                    currentPosition -= +width + thisObject.settings.margin;
-                    thisObject.className.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
-                    thisObject.setActiveSlide(indexSlide);
-                }
-                if (indexSlide === 0) {
-                    this.classList.add('disabled')
-                } else {
-                    this.classList.remove('disabled')
-                }
-                thisObject.next.classList.remove('disabled');
+        this.next.onclick = function () {
+            indexSlide++;
+            currentPosition += +width;
+            thisObject.sliderContainer.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
+        };
+        this.prev.onclick = function () {
+            if(indexSlide > 0){
+                indexSlide--;
+                currentPosition -= +width;
+                thisObject.sliderContainer.style.transform = 'translate3d(-'+ currentPosition +'px, 0px, 0px)';
             }
-        }else{
-            document.querySelector('.slider-navigation').classList.add('hide');
         }
     }
     SliderInit(){
-        this.className.classList.add('slider-init');
+        this.sliderContainer.classList.add('slider-init');
+        this.setSettingsValue();
+        this.setBreakPoints();
         this.sliderItemsInit();
         this.setActiveSlide();
         this.sliderNavigation();
@@ -104,8 +121,19 @@ class Slider{
 }
 let slider = new Slider('main-slider-first',{
     slide:3,
+    margin:20,
     loop:false,
-    margin:90,
+    touch:true,
+    offset:'one',
+    breakPoints:{
+      '320':{
+        margin:10,
+        slide:2
+      },
+      '1200':{
+          slide:3
+      }
+    },
     navigation:{
         'next':'slider-btn-next',
         'prev':'slider-btn-prev'
