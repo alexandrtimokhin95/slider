@@ -45,6 +45,12 @@ class Slider{
             this.setBreakPoints();
         }
 
+        if(typeof this.settings['swipe'] !== "undefined"){
+            this.swipe = this.settings.swipe;
+        }else{
+            this.swipe = false;
+        }
+
     }
     setBreakPoints(){
         let thisObject = this;
@@ -293,7 +299,9 @@ class Slider{
         }
         this.sliderItemsInit();
         this.setActiveSlide();
-        this.setSwipeSlides();
+        if(this.swipe){
+            this.setSwipeSlides();
+        }
         this.sliderNavigation();
     }
 }
@@ -301,8 +309,8 @@ let slider = new Slider('main-slider-first',{
     slide:1,
     margin:20,
     loop:true,
-    touch:true,
     offset:'all',
+    swipe: true,
     navigation:{
         'next':'slider-btn-next',
         'prev':'slider-btn-prev'
